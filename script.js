@@ -17,11 +17,11 @@ window.pingPong = function pingPong(element, options) {
         }
     };
 
-    o['HORIZONTAL_HALF'] = function(o) { return o.WIDTH / 2; };
-    o['VERTICAL_HALF'] = function(o) { return o.HEIGHT / 2; };
-    o['PADDLE_X'] = function (o) { return o.HORIZONTAL_HALF - (o.PADDLE_WIDTH / 2); };
-    o['COMPUTER_PADDLE_Y'] = function (o) { return o.PADDLE_OFFSET; };
-    o['PLAYER_PADDLE_Y'] = function(o) { return o.HEIGHT - (o.PADDLE_HEIGHT + o.PADDLE_OFFSET); };
+    o['HORIZONTAL_HALF']   = function(o) { return o.WIDTH / 2; };
+    o['VERTICAL_HALF']     = function(o) { return o.HEIGHT / 2; };
+    o['PADDLE_X']          = function(o) { return o.HORIZONTAL_HALF - (o.PADDLE_WIDTH / 2); };
+    o['COMPUTER_PADDLE_Y'] = function(o) { return o.PADDLE_OFFSET; };
+    o['PLAYER_PADDLE_Y']   = function(o) { return o.HEIGHT - (o.PADDLE_HEIGHT + o.PADDLE_OFFSET); };
 
     var key;
 
@@ -46,9 +46,6 @@ window.pingPong = function pingPong(element, options) {
 
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
-    var ball = new Ball();
-    var player = new Player();
-    var computer = new Computer();
 
     element.appendChild(canvas);
     canvas.width = o.WIDTH;
@@ -122,10 +119,9 @@ window.pingPong = function pingPong(element, options) {
     };
 
     Computer.prototype.update = function () {
-        var x_pos = ball.x;
-        var diff = -((this.paddle.x + (o.PADDLE_WIDTH / 2)) - x_pos);
+        var diff = -((this.paddle.x + (o.PADDLE_WIDTH / 2)) - ball.x);
 
-        if (diff < 0 && diff > -o.PADDLE_SPEED) {
+        if (diff < 0 && diff < -o.PADDLE_SPEED) {
             this.paddle.move(-(o.PADDLE_SPEED + 1), 0);
         } else if (diff > 0 && diff > o.PADDLE_SPEED) {
             this.paddle.move(o.PADDLE_SPEED + 1, 0);
@@ -171,16 +167,16 @@ window.pingPong = function pingPong(element, options) {
             this.reset();
         }
 
-        if (top_y > o.VERTICAL_HALF) {
+        if (top_y > o.VERTICAL_HALF) { // Is on player side
             if (player.paddle.collided(top_x, top_y, bottom_x, bottom_y)) {
                 this.y_speed = -o.BALL_SPEED;
-                this.x_speed = (player.paddle.x_speed / 2);
+                this.x_speed += (player.paddle.x_speed / 2);
                 this.y += this.y_speed;
             }
-        } else {
+        } else { // Is on computer side
             if (computer.paddle.collided(top_x, top_y, bottom_x, bottom_y)) {
                 this.y_speed = o.BALL_SPEED;
-                this.x_speed = (computer.paddle.y_speed / 2);
+                this.x_speed += (computer.paddle.x_speed / 2);
                 this.y += this.y_speed;
             }
         }
@@ -196,10 +192,14 @@ window.pingPong = function pingPong(element, options) {
         delete keys[e.keyCode];
     });
 
+    var ball = new Ball();
+    var player = new Player();
+    var computer = new Computer();
+
     function update() {
-        ball.update();
-        computer.update();
         player.update();
+        computer.update();
+        ball.update();
     }
 
     function render() {
